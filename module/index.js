@@ -331,9 +331,7 @@ function blindBoxGetUserList(req, res, next) {
   let params = [`%${name}%`, (page - 1) * Number(pagesize), Number(pagesize)];
   query(sql, params, next, (datalist) => {
     let createStr = datalist[2][0]["Create Table"];
-    console.log("createStr", createStr);
     let mapKey = formatCreateTable(createStr);
-    console.log("mapKey", mapKey);
     res.send({
       status: 0,
       data: { list: datalist[0], mapKey, total: datalist[1][0].total },
