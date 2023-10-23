@@ -7,30 +7,50 @@
 var app = require("../app");
 var debug = require("debug")("react-ant-admin-server:server");
 var http = require("http");
-const config = require("../common");
+var https = require("https");
+var fs = require("fs");
+var path = require("path");
+var dotenv = require("dotenv");
+
+/**
+ * 读取环境变量配置
+ */
+dotenv.config();
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(config.port);
+var port = normalizePort(process.env.PORT || "4040");
 app.set("port", port);
 
 /**
- * Create HTTP server.
+ * 定义创建 HTTP/HTTPS 服务器的函数：
+ * 如果是生产环境，则使用 HTTPS 创建服务器，否则使用 HTTP 创建服务器。
  */
-
-var server = http.createServer(app);
+function createServer() {
+  if (process.env.NODE_ENV === "production") {
+    const options = {
+      key: fs.readFileSync(
+        path.join(__dirname, "../public/ssl/nonhana.site.key")
+      ),
+      cert: fs.readFileSync(
+        path.join(__dirname, "../public/ssl/nonhana.site_bundle.pem")
+      ),
+    };
+    return https.createServer(options, app);
+  } else {
+    return http.createServer(app);
+  }
+}
+const server = createServer();
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port, config.host, () => {
-  console.log(`
-  server is starting:
-    http://${config.host}:${port}
-  `);
+server.listen(port, () => {
+  console.log(`服务器正在监听端口 ${port}`);
 });
 server.on("error", onError);
 server.on("listening", onListening);
